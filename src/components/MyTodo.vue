@@ -127,6 +127,7 @@ export default defineComponent({
       console.log('MyTodo onUnmounted')
     })
 
+    // template内で使用するプロパティ
     return {
       addTodo,
       removeTodo,

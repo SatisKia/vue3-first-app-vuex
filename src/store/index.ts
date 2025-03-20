@@ -17,7 +17,7 @@ export default createStore({
       state.hoge++
     },
     add (state, payload) {
-      state.hoge += payload.fuga
+      state.hoge += payload.piyo
     }
   },
   actions: {
