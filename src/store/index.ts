@@ -1,40 +1,52 @@
 import { createStore } from 'vuex'
+import { Todo } from '@/types/todo'
 
 export default createStore({
   state: {
-    hoge: 0
+    todoList: [] as Todo[]
   },
   getters: {
-    hoge (state) { // プロパティスタイル
-      return state.hoge
-    },
-    fuga: (state) => (piyo: number) => { // メソッドスタイル
-      return state.hoge + piyo
+    todoList (state) {
+      return state.todoList
     }
   },
   mutations: {
-    increment (state) {
-      state.hoge++
+    initialize (state) {
+      state.todoList = [] as Todo[]
     },
-    add (state, payload) {
-      state.hoge += payload.piyo
+    push (state, payload: { todo: Todo }) {
+      state.todoList.push(payload.todo)
+    },
+    add (state, payload: { todo: Todo }) {
+      state.todoList = [...state.todoList, payload.todo]
+    },
+    remove (state, payload: { id: string }) {
+      state.todoList = state.todoList.filter(todo => todo.id !== payload.id)
+    },
+    done (state, payload: { id: string }) {
+      const todoList = state.todoList.slice()
+      const todo = todoList.find(todo => todo.id === payload.id)
+      if (todo) {
+        todo.done = !todo.done
+        state.todoList = todoList
+      }
     }
   },
   actions: {
-    increment (context) {
-      context.commit('increment')
+    initialize (context) {
+      context.commit('initialize')
     },
-    add (context, payload) {
+    push (context, payload: { todo: Todo }) {
+      context.commit('push', payload)
+    },
+    add (context, payload: { todo: Todo }) {
       context.commit('add', payload)
     },
-    increment2 ({ commit }) { // シンプルなコード
-      commit('increment')
+    remove (context, payload: { id: string }) {
+      context.commit('remove', payload)
     },
-    incrementAsync (context) { // 非同期の操作
-      setTimeout(() => {
-        context.commit('increment')
-        console.log('committed: ' + context.state.hoge)
-      }, 1000)
+    done (context, payload: { id: string }) {
+      context.commit('done', payload)
     }
   }
 })

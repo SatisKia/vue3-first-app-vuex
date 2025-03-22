@@ -14,15 +14,12 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onBeforeMount, onMounted, onBeforeUpdate, onUpdated, onBeforeUnmount, onUnmounted, reactive } from 'vue'
+import { computed, defineComponent, onBeforeMount, onMounted, onBeforeUpdate, onUpdated, onBeforeUnmount, onUnmounted } from 'vue'
 import { Todo } from '@/types/todo'
 import TodoInput from '@/components/TodoInput.vue'
 import TodoLabel from '@/components/TodoLabel.vue'
 import MyCookie from '@/plugins/Cookie'
-
-interface State {
-  todoList: Todo[];
-}
+import store from '@/store'
 
 export default defineComponent({
   components: {
@@ -30,17 +27,12 @@ export default defineComponent({
     TodoLabel
   },
   setup () {
-    // data
-    const state = reactive<State>({
-      todoList: [] as Todo[]
-    })
-
     // methods
     const loadData = async () => {
       console.log('loadData')
 
       // データの読み込み処理
-      state.todoList = [] as Todo[]
+      store.dispatch('initialize')
       const cookie: MyCookie = new MyCookie()
       for (let i = 0; ; i++) {
         const id = cookie.getValue('id' + i, '')
@@ -51,12 +43,14 @@ export default defineComponent({
         const date = new Date(cookie.getNumber('date' + i, 0))
         const text = cookie.getValue('text' + i, '')
         const color = cookie.getValue('color' + i, '')
-        state.todoList.push({
-          id: id,
-          done: done,
-          date: date,
-          text: text,
-          color: color
+        store.dispatch('push', {
+          todo: {
+            id: id,
+            done: done,
+            date: date,
+            text: text,
+            color: color
+          }
         })
       }
     }
@@ -64,10 +58,11 @@ export default defineComponent({
       console.log('saveData')
 
       // データの書き込み処理
+      const todoList = store.getters.todoList
       const cookie: MyCookie = new MyCookie()
       let i = 0
-      for (; i < state.todoList.length; i++) {
-        const todo = state.todoList[i]
+      for (; i < todoList.length; i++) {
+        const todo = todoList[i]
         cookie.setValue('id' + i, todo.id)
         cookie.setBool('done' + i, todo.done)
         cookie.setNumber('date' + i, todo.date.getTime())
@@ -77,30 +72,30 @@ export default defineComponent({
       cookie.setValue('id' + i, '')
     }
     const addTodo = (text: string, color: string) => {
-      state.todoList = [...state.todoList, {
-        id: (new Date()).getTime().toString(),
-        done: false,
-        date: new Date(),
-        text: text,
-        color: color
-      }]
+      store.dispatch('add', {
+        todo: {
+          id: (new Date()).getTime().toString(),
+          done: false,
+          date: new Date(),
+          text: text,
+          color: color
+        }
+      })
       saveData()
     }
     const removeTodo = (id: string) => {
-      state.todoList = state.todoList.filter(todo => todo.id !== id)
+      store.dispatch('remove', { id: id })
       saveData()
     }
     const doneTodo = (id: string) => {
-      const todo = state.todoList.find(todo => todo.id === id)
-      if (todo) {
-        todo.done = !todo.done
-        saveData()
-      }
+      store.dispatch('done', { id: id })
+      saveData()
     }
 
     // computed
     const sortedTodo = computed(() => {
-      return state.todoList.slice().sort((a, b) => {
+      const todoList = store.getters.todoList.slice()
+      return todoList.sort((a: Todo, b: Todo) => {
         return b.date.getTime() - a.date.getTime()
       })
     })
