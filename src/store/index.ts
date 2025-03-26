@@ -24,11 +24,9 @@ export default createStore({
       state.todoList = state.todoList.filter(todo => todo.id !== payload.id)
     },
     done (state, payload: { id: string }) {
-      const todoList = state.todoList.slice()
-      const todo = todoList.find(todo => todo.id === payload.id)
+      const todo = state.todoList.find(todo => todo.id === payload.id)
       if (todo) {
         todo.done = !todo.done
-        state.todoList = todoList
       }
     }
   },

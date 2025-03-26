@@ -94,6 +94,7 @@ export default defineComponent({
 
     // computed
     const sortedTodo = computed(() => {
+      // 算出プロパティではデータを直接変更することができないため、sliceで配列をコピー
       const todoList = store.getters.todoList.slice()
       return todoList.sort((a: Todo, b: Todo) => {
         return b.date.getTime() - a.date.getTime()
